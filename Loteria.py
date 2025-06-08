@@ -15,6 +15,8 @@ Loteria = {
     "usuarios" : []
 }
 Usuarios  = []
+numeros_boletas = []
+Nombre_Usuario ="MSTIVEN"
 
 
 
@@ -73,8 +75,6 @@ def Menu_De_Ingreso():
 
 def Validacion_Ingreso(mensaje: str, valorminimo: int = 0, valormaximo: int = 6):
 
-
-    # Función para validar el ingreso de datos
     while True:
         try:
             valor = int(input(mensaje))
@@ -151,7 +151,7 @@ def Registro_Usuarios(Cedula: int, Nombre: str, Telefono:  int, Correo: str, Usu
         "Telefono" : Telefono,
         "Correo" : Correo,
         "Usuario" : Usuario,
-        "Password" :  Password
+        "Password" :  Password,
     }
 
 def Guardar_Usuarios(datos: dict, guardar: list):
@@ -168,6 +168,8 @@ def Guardar_Usuarios(datos: dict, guardar: list):
         Correo=Correo,
         Usuario=Usuario,
         Password=Password
+        
+        
     )
 
     guardar.append(datos)  
@@ -224,17 +226,56 @@ def Menu_Sub_Menu_Aciertos():
     print("----------------------------5. ESTADISTICAS 📊           -----------------------------------------")
     print("----------------------------0. SALIR  ❌                 -----------------------------------------")
 
-def Numero_Aleatorios(lista_Numeros: list):
+def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
+    usuarios = leerJson(datos)
     lista_Numeros = []
-    numero = Validacion_Ingreso(f"INGRESE LOS NUMEROS QUE DESEA GENERAR :\n ",1,20) 
-    for i in range(numero) :
-        numeros = random.sample(range(1,49),6)
-        lista_Numeros.append(numeros)
+    numero = Validacion_Ingreso("¿CUÁNTOS BOLETOS ALEATORIOS DESEA GENERAR? (1-20):\n", 1, 20)
+    for _ in range(numero):
+        numeros = random.sample(range(1, 49), 6)
+        numeros_str = '-'.join(str(x) for x in numeros)
+        lista_Numeros.append(numeros_str)
+    print("\nBOLETOS GENERADOS:")
+    for index, boleto in enumerate(lista_Numeros, start=1):
+        print(f"{index}. {boleto}")
+    seleccion = input("\nIngrese los números de los boletos que desea comprar separados por coma (ejemplo: 1,3,5):\n")
+    seleccionados = []
+    try:
+        indices = [int(x.strip())-1 for x in seleccion.split(",") if x.strip().isdigit()]
+        for idx in indices:
+            if 0 <= idx < len(lista_Numeros):
+                seleccionados.append(lista_Numeros[idx])
+    except:
+        print("Selección inválida. No se agregaron boletos.")
+        return
+    if not seleccionados:
+        print("No seleccionó ningún boleto.")
+        return
+    # Buscar usuario y agregar boletos seleccionados
+    for usuario in usuarios:
+        if usuario["Usuario"] == usuario_nombre:
+            if "boletos" not in usuario:
+                usuario["boletos"] = []
+            usuario["boletos"].extend(seleccionados)
+            break
+    escribirJson(datos, usuarios)
+    Normalizar_Boletos(datos)
+    print(f"\n¡Boletos comprados exitosamente para {usuario_nombre}!")
 
-    for index, i in enumerate(lista_Numeros, start =1):
-        print(f"{index}. {i[0]} - {i[1]} - {i[2]} - {i[3]} - {i[4]} - {i[5]} ")
-
-        
+def Normalizar_Boletos(datos: str):
+    usuarios = leerJson(datos)
+    for usuario in usuarios:
+        if "boletos" in usuario:
+            nuevos_boletos = []
+            for boleto in usuario["boletos"]:
+                if isinstance(boleto, list):
+                    # Convierte la lista de números a string con guiones
+                    boleto_str = '-'.join(str(x) for x in boleto)
+                    nuevos_boletos.append(boleto_str)
+                else:
+                    nuevos_boletos.append(boleto)
+            usuario["boletos"] = nuevos_boletos
+    escribirJson(datos, usuarios)
+    
     
 def Verificacion_Contraseña(mensaje: str):
     while True:
@@ -247,6 +288,7 @@ def Verificacion_Contraseña(mensaje: str):
             print("VERIFICA QUE LAS CONTRAEÑAS SEAN IGUALES")
 
 def Ingreso_Usuario(mensaje: str):
+    global Nombre_Usuario
     while True:
         Usuario = Validar_Texto(f"INGRESE SU USUARIO PARA INGRESAR A SU CUENTA : \n" )
         datos = leerJson(mensaje)
@@ -257,17 +299,14 @@ def Ingreso_Usuario(mensaje: str):
                     Contraseña = input("INGRESAR CONTRASEÑA \n")
                     if dato["Password"] == Contraseña :
                         logos()
-                        break
+                        Nombre_Usuario = Usuario  # Guardar el usuario autenticado en la variable global
+                        print("Ingreso exitoso.")
+                        return Nombre_Usuario
                     else:
                         print("CONTRASEÑA INCORRECTA")
             else:
                 print("USUARIO NO EXISTE")                  
         break
-
-
-
-
-
 
 while True:
     Menu_De_Ingreso()
@@ -278,6 +317,7 @@ while True:
         escribirJson("Loteria.json",Usuarios)
     elif  Opcion_Menu == 2:
         Ingreso_Usuario("Loteria.json")
+        print(Nombre_Usuario)
         def Proceso_Inicial():
             Menu_Usuario()
             Opcion_Usuario = Validacion_Menu_Usuario("INGRESE  SU OPCION\n",0,5)
@@ -286,12 +326,10 @@ while True:
                 Menu_Sub_Menu_Boletas()
                 Opcion_Boleto = Validacion_Ingreso("INGRESE  SU OPCION\n",0,2)
 
-
-
-
-
     elif  Opcion_Menu == 0:
-        Numero_Aleatorios()
+        Agregar_Boletos_Usuario( Nombre_Usuario, "Loteria.json")
+        Normalizar_Boletos("Loteria.json")
+       
         
 
 
