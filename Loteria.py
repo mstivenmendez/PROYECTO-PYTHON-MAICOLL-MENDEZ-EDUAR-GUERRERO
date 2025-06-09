@@ -237,7 +237,7 @@ def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
     print("\nBOLETOS GENERADOS:")
     for index, boleto in enumerate(lista_Numeros, start=1):
         print(f"{index}. {boleto}")
-    seleccion = input("\nIngrese los números de los boletos que desea comprar separados por coma (ejemplo: 1,3,5):\n")
+    seleccion = input("\nINGRESE LOS NUMERO QUE QUIERE COMPRAR SEPARADOS POR COMAS POR (EJEMPLO: 1,3,5):\n")
     seleccionados = []
     try:
         indices = [int(x.strip())-1 for x in seleccion.split(",") if x.strip().isdigit()]
@@ -245,12 +245,11 @@ def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
             if 0 <= idx < len(lista_Numeros):
                 seleccionados.append(lista_Numeros[idx])
     except:
-        print("Selección inválida. No se agregaron boletos.")
+        print("SECCION INVALIDA")
         return
     if not seleccionados:
-        print("No seleccionó ningún boleto.")
+        print("NO SE SELECIONO NINGUN BOLETO")
         return
-    # Buscar usuario y agregar boletos seleccionados
     for usuario in usuarios:
         if usuario["Usuario"] == usuario_nombre:
             if "boletos" not in usuario:
@@ -259,7 +258,7 @@ def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
             break
     escribirJson(datos, usuarios)
     Normalizar_Boletos(datos)
-    print(f"\n¡Boletos comprados exitosamente para {usuario_nombre}!")
+    print(f"\n¡BOLETOS COMPRADOS EXITOSAMENTE {usuario_nombre}!")
 
 def Normalizar_Boletos(datos: str):
     usuarios = leerJson(datos)
@@ -307,7 +306,77 @@ def Ingreso_Usuario(mensaje: str):
             else:
                 print("USUARIO NO EXISTE")                  
         break
-
+ 
+def Agregar_Boletos_Manualmente(usuario_nombre: str, datos: str):
+    usuarios = leerJson(datos)
+    lista_Numeros = []
+    cantidad = Validacion_Ingreso("¿CUÁNTOS BOLETOS DESEA COMPRAR? (1-5):\n", 1, 5)
+    for i in range(cantidad):
+        while True:
+            entrada = input(f"INGRESE 6 NUMERO DEL 1 AL 49 POR {i+1} (EJEMPLO: 5,12,23,34,41,48):\n")
+            numeros = [n.strip() for n in entrada.split(",")]
+            if len(numeros) == 6 and all(n.isdigit() and 1 <= int(n) <= 49 for n in numeros):
+                numeros_str = '-'.join(numeros)
+                lista_Numeros.append(numeros_str)
+                break
+            else:
+                print("ENTRADA INVALIDA INGRESE 6 NUMEROS DE DOS DIGITOS DEL 1 AL 49")
+    print("\nBOLETOS INGRESADOS:")
+    for index, boleto in enumerate(lista_Numeros, start=1):
+        print(f"{index}. {boleto}")
+        
+    # Buscar usuario y agregar boletos
+    for usuario in usuarios:
+        if usuario["Usuario"] == usuario_nombre:
+            if "boletos" not in usuario:
+                usuario["boletos"] = []
+            usuario["boletos"].extend(lista_Numeros)
+            break
+    escribirJson(datos, usuarios)
+    Normalizar_Boletos(datos)
+    print(f"\n¡Boletos comprados exitosamente para {usuario_nombre}!")
+    
+def Boletas_Ganadoras():
+    while True:
+        entrada = input("INGRESE 6 NÚMEROS ENTRE 1 Y 49, SEPARADOS POR COMAS (EJ: 5,12,23,34,41,48):\n")
+        partes = entrada.split(",")
+        if len(partes) != 6:
+            print("DEBE INGRESAR EXACTAMENTE 6 NÚMEROS.")
+            continue
+        numeros = []
+        es_valido = True
+        for p in partes:
+            p = p.strip()  
+            if not p.isdigit():
+                es_valido = False
+                break
+            numero = int(p)
+            if numero < 1 or numero > 49:
+                es_valido = False
+                break
+            numeros.append(numero)
+        if es_valido:
+            boleto = "-".join(str(n) for n in numeros)
+            print("\nBOLETO GANADOR INGRESADO:")
+            print(boleto)
+            return boleto
+        else:
+            print("ENTRADA INVÁLIDA. ASEGÚRESE DE QUE TODOS LOS NÚMEROS ESTÉN ENTRE 1 Y 49.")
+    for Indice, Ganador in enumerate(Numero_Ganador, start=1):
+        print(f"{Indice}. {Ganador}")
+               
+               
+def Proceso_Inicial():
+    Menu_Usuario()
+    Opcion_Usuario = Validacion_Menu_Usuario("INGRESE  SU OPCION\n",0,5)
+    if  Opcion_Usuario == 1:
+        Menu_Sub_Menu_Boletas()
+        Opcion_Boleto = Validacion_Ingreso("INGRESE  SU OPCION\n",0,2)
+        if Opcion_Boleto == 1:
+            Agregar_Boletos_Usuario(Nombre_Usuario,"Loteria.json")             
+        if Opcion_Boleto == 2:
+            Agregar_Boletos_Manualmente()
+            
 while True:
     Menu_De_Ingreso()
     Opcion_Menu = Validacion_Menu_Ingreso("INGRESE  SU OPCION\n",0,2)
@@ -317,18 +386,10 @@ while True:
         escribirJson("Loteria.json",Usuarios)
     elif  Opcion_Menu == 2:
         Ingreso_Usuario("Loteria.json")
-        print(Nombre_Usuario)
-        def Proceso_Inicial():
-            Menu_Usuario()
-            Opcion_Usuario = Validacion_Menu_Usuario("INGRESE  SU OPCION\n",0,5)
-
-            if  Opcion_Usuario == 1:
-                Menu_Sub_Menu_Boletas()
-                Opcion_Boleto = Validacion_Ingreso("INGRESE  SU OPCION\n",0,2)
-
+        Proceso_Inicial()
     elif  Opcion_Menu == 0:
-        Agregar_Boletos_Usuario( Nombre_Usuario, "Loteria.json")
-        Normalizar_Boletos("Loteria.json")
+        Boletas_Ganadoras()
+        
        
         
 
