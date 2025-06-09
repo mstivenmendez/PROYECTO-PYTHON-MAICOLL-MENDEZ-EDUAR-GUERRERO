@@ -17,6 +17,9 @@ Loteria = {
 Usuarios  = []
 numeros_boletas = []
 Nombre_Usuario ="MSTIVEN"
+global Admin 
+Admin = "ADMINISTRADOR"
+Boleta_Ganadora ="5-12-23-34-41-48"
 
 
 
@@ -196,6 +199,7 @@ def Validacion_Telefono(mensaje: str):
 def Menu_Usuario():
     print("------------------------------------------------😄-------------------------------------------------")
     print("------------------BIENVENIDOS DONDE LAS OPOTUNIDADES DE GANAR SON TAN FACILES 🌟 ------------------")
+    print(f"-----------------------BIENVENIDO A NUESTRA LOTERIA {Nombre_Usuario} 🌟 -------------------------")
     espacio()
     print("----------------------------1. COMPRAR BOLETOS 🎟️                      ----------------------------")
     print("----------------------------2. BOLETOS COMPRADOS 🎟️                    ----------------------------")
@@ -235,6 +239,7 @@ def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
         numeros_str = '-'.join(str(x) for x in numeros)
         lista_Numeros.append(numeros_str)
     print("\nBOLETOS GENERADOS:")
+    
     for index, boleto in enumerate(lista_Numeros, start=1):
         print(f"{index}. {boleto}")
     seleccion = input("\nINGRESE LOS NUMERO QUE QUIERE COMPRAR SEPARADOS POR COMAS POR (EJEMPLO: 1,3,5):\n")
@@ -260,6 +265,76 @@ def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
     Normalizar_Boletos(datos)
     print(f"\n¡BOLETOS COMPRADOS EXITOSAMENTE {usuario_nombre}!")
 
+def Administrador_Menu():
+    logos()
+    print("------------------------------------------------😄-------------------------------------------------")
+    print(f"----------------------------BIENVENIDO A NUESTRA LOTERIA {admin} 🌟 ------------------------------")
+    espacio()
+    print("----------------------------1. VER USUARIOS 🎟️                      -------------------------------")
+    print("----------------------------2. INGRESER NUMERO GANADOR 🎟️           -------------------------------")
+    print("----------------------------3. VER HISTORIAL DE NUMEROS GANADORES 🎉   ----------------------------")
+    print("----------------------------4. VER HISTORIAL DE LOS GANADORES   📜     ----------------------------")
+    print("----------------------------0. SALIR  ❌                               ----------------------------")   
+
+def Administrador_Ver_Usuarios(datos: str,admin:str):
+    Ver_Usuario = leerJson(datos)
+    for i in Ver_Usuario:
+        print(f"CEDULA: {i["Cedula"]} , USUARIO: {i["Usuario"]} , TELEFONO: {i["Telefono"]} , CORREO: {i["Correo"]}")
+
+def Boletas_Ganadoras_Ad(nombre_Admin:str, datos:str):
+    global Boleta_Ganadora
+    ganador = leerJson(datos)
+    while True:
+        entrada = input("INGRESE 6 NÚMEROS ENTRE 1 Y 49, SEPARADOS POR COMAS (EJ: 5,12,23,34,41,48):\n")
+        partes = entrada.split(",")
+        if len(partes) != 6:
+            print("DEBE INGRESAR EXACTAMENTE 6 NÚMEROS.")
+            continue
+        numeros = []
+        es_valido = True
+        for p in partes:
+            p = p.strip()  
+            if not p.isdigit():
+                es_valido = False
+                break
+            numero = int(p)
+            if numero < 1 or numero > 49:
+                es_valido = False
+                break
+            numeros.append(numero)
+        if es_valido:
+            boleto = "-".join(str(n) for n in numeros)
+            print("\nBOLETO GANADOR INGRESADO:")
+            for i in ganador:
+                if i["Usuario"] == nombre_Admin :
+                    i["ganadores"].append(boleto)
+                    Boleta_Ganadora = boleta 
+                    escribirJson(datos,ganador)
+            print(boleto)
+            return boleto
+        else:
+            print("ENTRADA INVÁLIDA. ASEGÚRESE DE QUE TODOS LOS NÚMEROS ESTÉN ENTRE 1 Y 49.")
+            
+    for Indice, Ganador in enumerate(Numero_Ganador, start=1):
+        print(f"{Indice}. {Ganador}")
+
+def Numero_Ganadores(datos:str, admin: str):
+    numero = leerJson(datos)
+    for i in numero:
+        if i["Usuario"] == admin:
+            for i, index in enumerate(i["ganadores"], start = 1):
+                print(f"{i}: {index}")
+
+def Ganadores(datos: str, variable: str):
+    Numero = leerJson(datos)
+    encontrado = False
+    for i in Numero:
+        if "boletos" in i and variable in i["boletos"]:
+            print(f"¡El usuario ganador es: {i['Usuario']}!")
+            encontrado = True
+    if not encontrado:
+        print("No hay ganadores para ese boleto.")        
+
 def Normalizar_Boletos(datos: str):
     usuarios = leerJson(datos)
     for usuario in usuarios:
@@ -273,8 +348,8 @@ def Normalizar_Boletos(datos: str):
                 else:
                     nuevos_boletos.append(boleto)
             usuario["boletos"] = nuevos_boletos
-    escribirJson(datos, usuarios)
-    
+            escribirJson(datos, usuarios)
+  
     
 def Verificacion_Contraseña(mensaje: str):
     while True:
@@ -299,7 +374,7 @@ def Ingreso_Usuario(mensaje: str):
                     if dato["Password"] == Contraseña :
                         logos()
                         Nombre_Usuario = Usuario  # Guardar el usuario autenticado en la variable global
-                        print("Ingreso exitoso.")
+                        print(f"BIENVENIDOS A NUESTRA LOTERIA {Nombre_Usuario}")
                         return Nombre_Usuario
                     else:
                         print("CONTRASEÑA INCORRECTA")
@@ -322,8 +397,9 @@ def Agregar_Boletos_Manualmente(usuario_nombre: str, datos: str):
             else:
                 print("ENTRADA INVALIDA INGRESE 6 NUMEROS DE DOS DIGITOS DEL 1 AL 49")
     print("\nBOLETOS INGRESADOS:")
-    for index, boleto in enumerate(lista_Numeros, start=1):
-        print(f"{index}. {boleto}")
+    lista = convertido(Boleta_Ganadora)
+    lista2 = convertido_lista(lista_Numeros)
+    comparacion(lista2,lista)
         
     # Buscar usuario y agregar boletos
     for usuario in usuarios:
@@ -335,37 +411,65 @@ def Agregar_Boletos_Manualmente(usuario_nombre: str, datos: str):
     escribirJson(datos, usuarios)
     Normalizar_Boletos(datos)
     print(f"\n¡Boletos comprados exitosamente para {usuario_nombre}!")
-    
-def Boletas_Ganadoras():
-    while True:
-        entrada = input("INGRESE 6 NÚMEROS ENTRE 1 Y 49, SEPARADOS POR COMAS (EJ: 5,12,23,34,41,48):\n")
-        partes = entrada.split(",")
-        if len(partes) != 6:
-            print("DEBE INGRESAR EXACTAMENTE 6 NÚMEROS.")
-            continue
-        numeros = []
-        es_valido = True
-        for p in partes:
-            p = p.strip()  
-            if not p.isdigit():
-                es_valido = False
-                break
-            numero = int(p)
-            if numero < 1 or numero > 49:
-                es_valido = False
-                break
-            numeros.append(numero)
-        if es_valido:
-            boleto = "-".join(str(n) for n in numeros)
-            print("\nBOLETO GANADOR INGRESADO:")
-            print(boleto)
-            return boleto
+
+def Boletos_Comprados(nombre_Usuario: str, datos: str,):
+    Boletos_Comprado = leerJson(datos)
+    for indice in Boletos_Comprado:
+        if indice["Usuario"] == nombre_Usuario:
+            print(f"SUS BOLETOS COMPRADOS SON {nombre_Usuario}:")
+            for i, index in enumerate(indice["boletos"], start = 1):
+                print(f"{i}: {index}")
         else:
-            print("ENTRADA INVÁLIDA. ASEGÚRESE DE QUE TODOS LOS NÚMEROS ESTÉN ENTRE 1 Y 49.")
-    for Indice, Ganador in enumerate(Numero_Ganador, start=1):
-        print(f"{Indice}. {Ganador}")
-               
-               
+            print("USUARIO NO TIENE BOLETOS") 
+             
+    
+        
+def Numeros_Ganadores_Usuario(datos: str,  nombre_usario: str):
+    historial_ganadores = leerJson(datos)
+    for i in historial_ganadores:
+        if i["Usuario"] == nombre_usario:
+            for i, index in enumerate(i["ganadores"], start = 1):
+                print(f"{i}: {index}")
+                  
+
+def Personal_numerosjugadores(datos:str, nombre_usuario:str):
+    historial_personal = leerJson(datos)
+    for i in historial_personal:
+        if i["Usuario"] == nombre_usuario:
+            for i, index in enumerate(i["historial"], start = 1):
+                print(F"EL HISTORIAL DE LOS NUMEROS JUGADOS DE: {Nombre_Usuario}")
+                print(f"{i}: {index}")
+
+def premios_personales(datos:str, premios:str):
+    Premios_personales = leerJson(datos)
+    numero = []
+    for x in Premios_personales:
+        if x["Usuario"] == premios:
+            for i, index in enumerate(x["boletos"], start = 1):
+                numero.append(index)
+    boletos_numeros = []
+    for boleto in numero:
+        numeros = [int(x) for x in boleto.split("-")]
+        boletos_numeros.append(numeros)
+    
+    
+        
+def convertido(nombre: str):
+    numero = [int(x) for x in nombre.split("-")]
+    print(numero)
+    return numero
+
+def convertido_lista(nombre:list):
+    numeros = [[int(x) for x in s.split("-")] for s in nombre]
+    return numeros
+
+          
+        
+def comparacion(dato:list, datos2: list):
+    for i, boleto in enumerate(dato, start=1):
+        aciertos = len(set(boleto) & set(datos2))
+        print(f"Boleto {i}: {boleto} - Aciertos: {aciertos}")
+              
 def Proceso_Inicial():
     Menu_Usuario()
     Opcion_Usuario = Validacion_Menu_Usuario("INGRESE  SU OPCION\n",0,5)
@@ -375,7 +479,12 @@ def Proceso_Inicial():
         if Opcion_Boleto == 1:
             Agregar_Boletos_Usuario(Nombre_Usuario,"Loteria.json")             
         if Opcion_Boleto == 2:
-            Agregar_Boletos_Manualmente()
+            Agregar_Boletos_Manualmente(Nombre_Usuario,"Loteria.json")
+        if Opcion_Boleto == 0:
+            pass
+    if Opcion_Usuario == 2:
+        Boletos_Comprados(Nombre_Usuario,"Loteria.json")
+        
             
 while True:
     Menu_De_Ingreso()
@@ -388,10 +497,7 @@ while True:
         Ingreso_Usuario("Loteria.json")
         Proceso_Inicial()
     elif  Opcion_Menu == 0:
-        Boletas_Ganadoras()
+        Agregar_Boletos_Manualmente(Nombre_Usuario,"Loteria.json" )
         
-       
         
-
-
 
