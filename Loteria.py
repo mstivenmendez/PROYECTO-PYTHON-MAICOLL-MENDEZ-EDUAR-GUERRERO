@@ -1,30 +1,28 @@
 import os
 import random
 import json
+from collections import Counter
 
 def leerJson(path: str):
-    with open(path, mode='r') as file:
-        datos = json.load(file)
-        return datos
+    try:
+        with open(path, mode='r') as file:
+            datos = json.load(file)
+            return datos
+    except FileNotFoundError:
+        return []
     
 def escribirJson(path: str, data: list):
-    with open(path,mode= 'w') as file:
-        json.dump(data, file, indent= 4)
+    with open(path, mode='w') as file:
+        json.dump(data, file, indent=4)
 
-Loteria = {
-    "usuarios" : []
-}
-Usuarios  = []
+# Variables globales
+Loteria = {"usuarios": []}
+Usuarios = []
 numeros_boletas = []
-Nombre_Usuario ="MSTIVEN"
-global Admin 
+Nombre_Usuario = "MSTIVEN"
 Admin = "ADMINISTRADOR"
-Boleta_Ganadora ="5-12-23-34-41-48"
-
-
-
-
-
+Boleta_Ganadora = "5-12-23-34-41-48"
+historial_ganadores = []
 
 menu = """
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -54,19 +52,24 @@ menu = """
 │                |__/  |__/|_______/ |__/  |__/|______/|__/  |__/|__/  \__/                       │
 └─────────────────────────────────────────────────────────────────────────────────────────────────┘
 """
+
 def clear_screen():
-    # Función para limpiar la pantalla
     if os.name == 'nt':
         os.system('cls')  # Windows
     else:
         os.system('clear')  # Linux/Unix
 
+# HACEMOS UN LIMPIAR CONSOLA CADA VEZ QUE INGRESE A UNA OPCION SEA DEL USUARIO O EL ADMINISTRADOR
+def rango_clear_screen(variable: int, valorminimo: int, valormaximo: int):
+    if valorminimo <= variable <= valormaximo:
+        clear_screen()
+
 def espacio():
     print("\n" * 1)
-
+# AGREGAMOS EL LOGO DE LA EMPRESA PARA QUE APARECA CADA VEZ QUE SE DE UNA OPCION
 def logos():
     print(menu)
-
+# INTERFAZ GRAFICA DEL LAPAGINA 
 def Menu_De_Ingreso():
     logos()
     print("---------------------------------------------------------------------------------------------------")
@@ -76,8 +79,7 @@ def Menu_De_Ingreso():
     print("----------------------------------0.         SALIR ❌           --------------------------------------")
     espacio()
 
-def Validacion_Ingreso(mensaje: str, valorminimo: int = 0, valormaximo: int = 6):
-
+def Validacion_Ingreso(mensaje: str, valorminimo: int = 0, valormaximo: int = 6): #VALIDAR QUE SOLO INGRESE LETRAS
     while True:
         try:
             valor = int(input(mensaje))
@@ -88,11 +90,11 @@ def Validacion_Ingreso(mensaje: str, valorminimo: int = 0, valormaximo: int = 6)
         except:
             print("ENTRADA NO VALIDA POR FAVOR INGRESE NUMEROS")
 
-def Validar_Texto(mensaje: str):
+def Validar_Texto(mensaje: str): # VALIDA QUE SOLO SEA UNA CADENA DE TEXTO Y ME LA CONVIERTE EN MAYUSCULA 
     while True:
         valor = input(mensaje)
         suplente = valor.replace(" ", "")
-        if suplente.isalpha() == True :
+        if suplente.isalpha() == True:
             valor = valor.upper()
             return valor
             break
@@ -100,8 +102,8 @@ def Validar_Texto(mensaje: str):
             print("ENTRADA NO VALIDAD INGRESE SOLO LETRAS")
             continue
 
-def Validacion_Menu_Ingreso(mensaje: str, valorminimo: int = 0, valormaximo: int = 6):
-     while True:
+def Validacion_Menu_Ingreso(mensaje: str, valorminimo: int = 0, valormaximo: int = 6): #CADA VEZ QUE EL USUARIO INGRESE MAL EN LA PAGINA PRINCIPAL ME PARACESA NUEVAMENTE EL MENU 
+    while True:
         try:
             valor = int(input(mensaje))
             if valorminimo <= valor <= valormaximo:
@@ -113,8 +115,8 @@ def Validacion_Menu_Ingreso(mensaje: str, valorminimo: int = 0, valormaximo: int
             print("ENTRADA NO VALIDA POR FAVOR INGRESE NUMEROS")
             Menu_De_Ingreso()
 
-def Validacion_Menu_Usuario(mensaje: str, valorminimo: int = 0, valormaximo: int = 6):
-     while True:
+def Validacion_Menu_Usuario(mensaje: str, valorminimo: int = 0, valormaximo: int = 7): # CADA VEZ QUE EL USUARIO INGRESE MAL EN LA INTERFAZ DEL USUSRIO ME PARACESA NUEVAMENTE EL MENU 
+    while True:
         try:
             valor = int(input(mensaje))
             if valorminimo <= valor <= valormaximo:
@@ -126,16 +128,16 @@ def Validacion_Menu_Usuario(mensaje: str, valorminimo: int = 0, valormaximo: int
             print("ENTRADA NO VALIDA POR FAVOR INGRESE NUMEROS")
             Menu_Usuario()
             
-def Despedida():
+def Despedida(): # CUANDO SALGA EL USUARIO  DE LA PAGINA
     clear_screen()
     print("----------------- VUELVA MUY PRONTO DONDE LAS OPOTUNIDADES DE GANAR SON TAN FACILES ---------------")
     print("----------------------------------   GRACIAS POR TU VISITA   --------------------------------------")
     espacio()
 
-def Validacion_Correo(mensaje:str):
-    while True :
+def Validacion_Correo(mensaje: str): # VALIDA QUE EL CORREO SEA ESCRITO EN MINISCULA Y QUE NO TENGA ESPACIO Y LLEVE @
+    while True:
         email = input(mensaje)
-        if not "@" in email :
+        if not "@" in email:
             print("RECUERDA QUE TU CORREO DEBE CONTENER @")
             continue
         elif not email.islower():
@@ -147,17 +149,23 @@ def Validacion_Correo(mensaje:str):
         print("CORREO INGRESADO CORRECTAMENTE")
         return email
 
-def Registro_Usuarios(Cedula: int, Nombre: str, Telefono:  int, Correo: str, Usuario: str, Password: str):
+def Registro_Usuarios(Cedula: int, Nombre: str, Telefono: int, Correo: str, Usuario: str, Password: str): # CREAMOS  UN USUARIO Y LE AGREGAMOS  QUE VA TENER ESE USUARIO
     return {
-        "Cedula" : Cedula,
-        "Nombre" : Nombre,
-        "Telefono" : Telefono,
-        "Correo" : Correo,
-        "Usuario" : Usuario,
-        "Password" :  Password,
+        "Cedula": Cedula,
+        "Nombre": Nombre,
+        "Telefono": Telefono,
+        "Correo": Correo,
+        "Usuario": Usuario,
+        "Password": Password,
+        "boletos": [],
+        "historial": [],
+        "ganadores": [],
+        "dinero_invertido": 0,
+        "dinero_ganado": 0,
+        "premios": {"bronce": 0, "plata": 0, "oro": 0, "gran_premio": 0}
     }
 
-def Guardar_Usuarios(datos: dict, guardar: list):
+def Guardar_Usuarios(datos: dict, guardar: list): # AQUI ES CUANDO EL USUARIO SE VA A REGISTRAR
     Nombre = Validar_Texto("INGRESE SU NOMBRE: \n")
     Cedula = Validacion_Ingreso(f"INGRESE SU CEDULA, {Nombre} :\n", 10000000, 100000000000)
     Telefono = Validacion_Telefono(f"INGRESE SU NUMERO, {Nombre} :\n")
@@ -171,13 +179,10 @@ def Guardar_Usuarios(datos: dict, guardar: list):
         Correo=Correo,
         Usuario=Usuario,
         Password=Password
-        
-        
     )
+    guardar.append(datos)
 
-    guardar.append(datos)  
-
-def Validacion_Telefono(mensaje: str):
+def Validacion_Telefono(mensaje: str): # VALIDA QUE EL NUMERO TENGA 10 NUMERO Y QUE INICE EN 3 YA QUE S LA REFERENCIA EN COLOMBIA 
     while True: 
         try:
             telefono = int(input(mensaje))
@@ -185,9 +190,9 @@ def Validacion_Telefono(mensaje: str):
             numero = len(lista)
             if lista[0] != 3:
                 print("RECUERDA QUE SU NUMERO DEBE INICIAR EN 3")
-            elif numero != 10  :
+            elif numero != 10:
                 print("RECUERDA QUE SU NUMERO DEBE DEBE CONTENER 10 DIGITOS")
-            elif numero  == 10 and lista[0] == 3:
+            elif numero == 10 and lista[0] == 3:
                 print("TU NUMERO HA SIDO INGRESADO")
                 return telefono 
                 break
@@ -195,8 +200,9 @@ def Validacion_Telefono(mensaje: str):
                 print("RECUERDA QUE SU NUMERO NO DEBE TENE LETRAS ")
         except:
             print("INGRESE SOLO NUMEROS")
-
+# INTERFAZ DE CADA OPCION O SI ES USUARIO O ADMINISTRADOR
 def Menu_Usuario():
+    logos()
     print("------------------------------------------------😄-------------------------------------------------")
     print("------------------BIENVENIDOS DONDE LAS OPOTUNIDADES DE GANAR SON TAN FACILES 🌟 ------------------")
     print(f"-----------------------BIENVENIDO A NUESTRA LOTERIA {Nombre_Usuario} 🌟 -------------------------")
@@ -206,6 +212,8 @@ def Menu_Usuario():
     print("----------------------------3. VER HOSTORIAL DE NUMEROS GANADORES 🎉   ----------------------------")
     print("----------------------------4. VER HISTORIAL DE BOLETAS JUGADOS 📜     ----------------------------")
     print("----------------------------5. VER HISTORIAL CON ACIERTOS POR BOLETO 🎯----------------------------")
+    print("----------------------------6. VER DINERO INVERTIDO 💰                 ----------------------------")
+    print("----------------------------7. VER DINERO GANADO 🤑                    ----------------------------")
     print("----------------------------0. SALIR  ❌                               ----------------------------")   
 
 def Menu_Sub_Menu_Boletas():
@@ -223,27 +231,30 @@ def Menu_Sub_Menu_Aciertos():
     print("------------------------------------------------😄------------------------------------------------")
     print("-----------------BIENVENIDOS DONDE LAS OPOTUNIDADES DE GANAR SON TAN FACILES 🌟-------------------")
     espacio()
-    print("----------------------------1. PREMIO BRONCE 🥉          -----------------------------------------")
-    print("----------------------------2. PREMIO PLATA  🥈          -----------------------------------------")
-    print("----------------------------3. PREMIO ORO 🥇             -----------------------------------------")
-    print("----------------------------4. GRAN PREMIO 🏆            -----------------------------------------")
-    print("----------------------------5. ESTADISTICAS 📊           -----------------------------------------")
-    print("----------------------------0. SALIR  ❌                 -----------------------------------------")
+    print("----------------------------1. PREMIO BRONCE 🥉 (3 ACIERTOS)     ---------------------------------")
+    print("----------------------------2. PREMIO PLATA  🥈 (4 ACIERTOS)     ---------------------------------")
+    print("----------------------------3. PREMIO ORO 🥇 (5 ACIERTOS)        ---------------------------------")
+    print("----------------------------4. GRAN PREMIO 🏆 (6 ACIERTOS)       ---------------------------------")
+    print("----------------------------5. ESTADISTICAS 📊                   ---------------------------------")
+    print("----------------------------0. SALIR  ❌                         ---------------------------------")
 
-def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
+def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str): # AGREGA LOS BOLETOS ALEATORIAMENTE Y QUE EL ESCOJA CUALES QUIERE
     usuarios = leerJson(datos)
     lista_Numeros = []
     numero = Validacion_Ingreso("¿CUÁNTOS BOLETOS ALEATORIOS DESEA GENERAR? (1-20):\n", 1, 20)
+    
     for _ in range(numero):
         numeros = random.sample(range(1, 49), 6)
         numeros_str = '-'.join(str(x) for x in numeros)
         lista_Numeros.append(numeros_str)
-    print("\nBOLETOS GENERADOS:")
     
+    print("\nBOLETOS GENERADOS:")
     for index, boleto in enumerate(lista_Numeros, start=1):
         print(f"{index}. {boleto}")
+    
     seleccion = input("\nINGRESE LOS NUMERO QUE QUIERE COMPRAR SEPARADOS POR COMAS POR (EJEMPLO: 1,3,5):\n")
     seleccionados = []
+    
     try:
         indices = [int(x.strip())-1 for x in seleccion.split(",") if x.strip().isdigit()]
         for idx in indices:
@@ -252,23 +263,43 @@ def Agregar_Boletos_Usuario(usuario_nombre: str, datos: str):
     except:
         print("SECCION INVALIDA")
         return
+    
     if not seleccionados:
         print("NO SE SELECIONO NINGUN BOLETO")
         return
+    
+    # Calcular costo y agregar boletos
+    costo = len(seleccionados) * 2000  # $2000 por boleto
+    
     for usuario in usuarios:
         if usuario["Usuario"] == usuario_nombre:
             if "boletos" not in usuario:
                 usuario["boletos"] = []
+            if "historial" not in usuario:
+                usuario["historial"] = []
+            if "dinero_invertido" not in usuario:
+                usuario["dinero_invertido"] = 0
+                
             usuario["boletos"].extend(seleccionados)
+            usuario["historial"].extend(seleccionados)
+            usuario["dinero_invertido"] += costo
             break
+    
     escribirJson(datos, usuarios)
-    Normalizar_Boletos(datos)
+    
+    # MOSTRAR LOS ACIEERTOS DEL ULTIMO SORTEO
+    mostrar_aciertos_ultimo_sorteo(seleccionados, datos)
+    
+    # MOSTRAR NUEMRO MAS FRECUENTES
+    mostrar_numero_mas_frecuente(datos)
+    
     print(f"\n¡BOLETOS COMPRADOS EXITOSAMENTE {usuario_nombre}!")
+    print(f"COSTO TOTAL: ${costo:,}")
 
 def Administrador_Menu():
     logos()
     print("------------------------------------------------😄-------------------------------------------------")
-    print(f"----------------------------BIENVENIDO A NUESTRA LOTERIA {admin} 🌟 ------------------------------")
+    print(f"----------------------------BIENVENIDO A NUESTRA LOTERIA {Admin} 🌟 ------------------------------")
     espacio()
     print("----------------------------1. VER USUARIOS 🎟️                      -------------------------------")
     print("----------------------------2. INGRESER NUMERO GANADOR 🎟️           -------------------------------")
@@ -276,22 +307,25 @@ def Administrador_Menu():
     print("----------------------------4. VER HISTORIAL DE LOS GANADORES   📜     ----------------------------")
     print("----------------------------0. SALIR  ❌                               ----------------------------")   
 
-def Administrador_Ver_Usuarios(datos: str,admin:str):
+def Administrador_Ver_Usuarios(datos: str, admin: str): # CAUNDO EL USUARIO QUIERA VER LOS USUARIOS
     Ver_Usuario = leerJson(datos)
     for i in Ver_Usuario:
-        print(f"CEDULA: {i["Cedula"]} , USUARIO: {i["Usuario"]} , TELEFONO: {i["Telefono"]} , CORREO: {i["Correo"]}")
+        print(f"CEDULA: {i['Cedula']} , USUARIO: {i['Usuario']} , TELEFONO: {i['Telefono']} , CORREO: {i['Correo']}")
 
-def Boletas_Ganadoras_Ad(nombre_Admin:str, datos:str):
-    global Boleta_Ganadora
-    ganador = leerJson(datos)
+def Boletas_Ganadoras_Ad(nombre_Admin: str, datos: str): # EN ADMINISTRADOR AGREGA LA BOLETA GANADORA 
+    global Boleta_Ganadora, historial_ganadores
+    
     while True:
         entrada = input("INGRESE 6 NÚMEROS ENTRE 1 Y 49, SEPARADOS POR COMAS (EJ: 5,12,23,34,41,48):\n")
         partes = entrada.split(",")
+        
         if len(partes) != 6:
             print("DEBE INGRESAR EXACTAMENTE 6 NÚMEROS.")
             continue
+            
         numeros = []
         es_valido = True
+        
         for p in partes:
             p = p.strip()  
             if not p.isdigit():
@@ -302,35 +336,62 @@ def Boletas_Ganadoras_Ad(nombre_Admin:str, datos:str):
                 es_valido = False
                 break
             numeros.append(numero)
+            
         if es_valido:
             boleto = "-".join(str(n) for n in numeros)
-            print("\nBOLETO GANADOR INGRESADO:")
-            for i in ganador:
-                if i["Usuario"] == nombre_Admin :
-                    i["ganadores"].append(boleto)
-                    Boleta_Ganadora = boleta 
-                    escribirJson(datos,ganador)
-            print(boleto)
+            Boleta_Ganadora = boleto
+            historial_ganadores.append(boleto)
+            
+            print(f"\nBOLETO GANADOR INGRESADO: {boleto}")
+            
+            # VEFIFICA GANADORES Y LOS ACTUALIZA
+            verificar_ganadores_y_premios(datos, boleto)
             return boleto
         else:
             print("ENTRADA INVÁLIDA. ASEGÚRESE DE QUE TODOS LOS NÚMEROS ESTÉN ENTRE 1 Y 49.")
-            
-    for Indice, Ganador in enumerate(Numero_Ganador, start=1):
-        print(f"{Indice}. {Ganador}")
 
-def Numero_Ganadores(datos:str, admin: str):
-    numero = leerJson(datos)
-    for i in numero:
-        if i["Usuario"] == admin:
-            for i, index in enumerate(i["ganadores"], start = 1):
-                print(f"{i}: {index}")
+def verificar_ganadores_y_premios(datos: str, boleto_ganador: str): #VERIFICA GANADORES POR ACIERTOS
+    usuarios = leerJson(datos)
+    numeros_ganadores = [int(x) for x in boleto_ganador.split("-")]
+    
+    for usuario in usuarios:
+        if "boletos" in usuario:
+            for boleto in usuario["boletos"]:
+                numeros_boleto = [int(x) for x in boleto.split("-")]
+                aciertos = len(set(numeros_boleto) & set(numeros_ganadores))
+                
+                # ASIGNA LOS PREMIOS POR ACIERTOS
+                if aciertos == 6:
+                    usuario["premios"]["gran_premio"] += 1
+                    usuario["dinero_ganado"] += 100000000  # $100,000,000
+                    print(f"¡GRAN PREMIO! Usuario {usuario['Usuario']} ganó $100,000,000")
+                elif aciertos == 5:
+                    usuario["premios"]["oro"] += 1
+                    usuario["dinero_ganado"] += 5000000  # $5,000,000
+                    print(f"¡PREMIO ORO! Usuario {usuario['Usuario']} ganó $5,000,000")
+                elif aciertos == 4:
+                    usuario["premios"]["plata"] += 1
+                    usuario["dinero_ganado"] += 500000  # $500,000
+                    print(f"¡PREMIO PLATA! Usuario {usuario['Usuario']} ganó $500,000")
+                elif aciertos == 3:
+                    usuario["premios"]["bronce"] += 1
+                    usuario["dinero_ganado"] += 50000  # $50,000
+                    print(f"¡PREMIO BRONCE! Usuario {usuario['Usuario']} ganó $50,000")
+    
+    escribirJson(datos, usuarios)
+
+def Numero_Ganadores(datos: str, admin: str): # MUESTRA LOS NUMEROS GANADORES .................
+    global historial_ganadores
+    print("HISTORIAL DE NÚMEROS GANADORES:")
+    for i, ganador in enumerate(historial_ganadores, start=1):
+        print(f"{i}: {ganador}")
 
 def Ganadores(datos: str, variable: str):
-    Numero = leerJson(datos)
+    usuarios = leerJson(datos)
     encontrado = False
-    for i in Numero:
-        if "boletos" in i and variable in i["boletos"]:
-            print(f"¡El usuario ganador es: {i['Usuario']}!")
+    for usuario in usuarios:
+        if "boletos" in usuario and variable in usuario["boletos"]:
+            print(f"¡El usuario ganador es: {usuario['Usuario']}!")
             encontrado = True
     if not encontrado:
         print("No hay ganadores para ese boleto.")        
@@ -342,15 +403,13 @@ def Normalizar_Boletos(datos: str):
             nuevos_boletos = []
             for boleto in usuario["boletos"]:
                 if isinstance(boleto, list):
-                    # Convierte la lista de números a string con guiones
                     boleto_str = '-'.join(str(x) for x in boleto)
                     nuevos_boletos.append(boleto_str)
                 else:
                     nuevos_boletos.append(boleto)
             usuario["boletos"] = nuevos_boletos
-            escribirJson(datos, usuarios)
-  
-    
+    escribirJson(datos, usuarios)
+
 def Verificacion_Contraseña(mensaje: str):
     while True:
         contraseña = input(mensaje)
@@ -364,140 +423,408 @@ def Verificacion_Contraseña(mensaje: str):
 def Ingreso_Usuario(mensaje: str):
     global Nombre_Usuario
     while True:
-        Usuario = Validar_Texto(f"INGRESE SU USUARIO PARA INGRESAR A SU CUENTA : \n" )
+        Usuario = Validar_Texto("INGRESE SU USUARIO PARA INGRESAR A SU CUENTA: \n")
         datos = leerJson(mensaje)
         espacio()
-        for dato in datos :
+        
+        usuario_encontrado = False
+        for dato in datos:
             if dato["Usuario"] == Usuario:
+                usuario_encontrado = True
                 while True:
                     Contraseña = input("INGRESAR CONTRASEÑA \n")
-                    if dato["Password"] == Contraseña :
+                    if dato["Password"] == Contraseña:
                         logos()
-                        Nombre_Usuario = Usuario  # Guardar el usuario autenticado en la variable global
+                        Nombre_Usuario = Usuario
                         print(f"BIENVENIDOS A NUESTRA LOTERIA {Nombre_Usuario}")
                         return Nombre_Usuario
                     else:
                         print("CONTRASEÑA INCORRECTA")
-            else:
-                print("USUARIO NO EXISTE")                  
-        break
- 
+                        break
+                break
+        
+        if not usuario_encontrado:
+            print("USUARIO NO EXISTE")
+            break
+
 def Agregar_Boletos_Manualmente(usuario_nombre: str, datos: str):
     usuarios = leerJson(datos)
     lista_Numeros = []
     cantidad = Validacion_Ingreso("¿CUÁNTOS BOLETOS DESEA COMPRAR? (1-5):\n", 1, 5)
+    
     for i in range(cantidad):
         while True:
-            entrada = input(f"INGRESE 6 NUMERO DEL 1 AL 49 POR {i+1} (EJEMPLO: 5,12,23,34,41,48):\n")
+            entrada = input(f"INGRESE 6 NUMERO DEL 1 AL 49 PARA BOLETO {i+1} (EJEMPLO: 5,12,23,34,41,48):\n")
             numeros = [n.strip() for n in entrada.split(",")]
+            
             if len(numeros) == 6 and all(n.isdigit() and 1 <= int(n) <= 49 for n in numeros):
                 numeros_str = '-'.join(numeros)
                 lista_Numeros.append(numeros_str)
                 break
             else:
                 print("ENTRADA INVALIDA INGRESE 6 NUMEROS DE DOS DIGITOS DEL 1 AL 49")
+    
     print("\nBOLETOS INGRESADOS:")
-    lista = convertido(Boleta_Ganadora)
-    lista2 = convertido_lista(lista_Numeros)
-    comparacion(lista2,lista)
-        
+    for i, boleto in enumerate(lista_Numeros, start=1):
+        print(f"{i}: {boleto}")
+    
+    # Calcular costo
+    costo = len(lista_Numeros) * 2000
+    
     # Buscar usuario y agregar boletos
     for usuario in usuarios:
         if usuario["Usuario"] == usuario_nombre:
             if "boletos" not in usuario:
                 usuario["boletos"] = []
+            if "historial" not in usuario:
+                usuario["historial"] = []
+            if "dinero_invertido" not in usuario:
+                usuario["dinero_invertido"] = 0
+                
             usuario["boletos"].extend(lista_Numeros)
+            usuario["historial"].extend(lista_Numeros)
+            usuario["dinero_invertido"] += costo
             break
+    
     escribirJson(datos, usuarios)
-    Normalizar_Boletos(datos)
+    
+    # Mostrar aciertos vs último sorteo
+    mostrar_aciertos_ultimo_sorteo(lista_Numeros, datos)
+    
+    # Mostrar número más frecuente
+    mostrar_numero_mas_frecuente(datos)
+    
     print(f"\n¡Boletos comprados exitosamente para {usuario_nombre}!")
+    print(f"COSTO TOTAL: ${costo:,}")
 
-def Boletos_Comprados(nombre_Usuario: str, datos: str,):
-    Boletos_Comprado = leerJson(datos)
-    for indice in Boletos_Comprado:
-        if indice["Usuario"] == nombre_Usuario:
-            print(f"SUS BOLETOS COMPRADOS SON {nombre_Usuario}:")
-            for i, index in enumerate(indice["boletos"], start = 1):
-                print(f"{i}: {index}")
-        else:
-            print("USUARIO NO TIENE BOLETOS") 
-             
+def Boletos_Comprados(nombre_Usuario: str, datos: str):
+    usuarios = leerJson(datos)
+    boletos_encontrados = False
     
+    for usuario in usuarios:
+        if usuario["Usuario"] == nombre_Usuario:
+            if "boletos" in usuario and len(usuario["boletos"]) > 0:
+                print(f"SUS BOLETOS COMPRADOS SON {nombre_Usuario}:")
+                for i, boleto in enumerate(usuario["boletos"], start=1):
+                    print(f"{i}: {boleto}")
+                boletos_encontrados = True
+            break
+    
+    if not boletos_encontrados:
+        print("NO TIENE BOLETOS COMPRADOS")
+
+def Numeros_Ganadores_Usuario(datos: str, nombre_usuario: str):
+    global historial_ganadores
+    print(f"HISTORIAL DE NÚMEROS GANADORES PARA {nombre_usuario}:")
+    for i, ganador in enumerate(historial_ganadores, start=1):
+        print(f"{i}: {ganador}")
+
+def Personal_numerosjugadores(datos: str, nombre_usuario: str):
+    usuarios = leerJson(datos)
+    
+    for usuario in usuarios:
+        if usuario["Usuario"] == nombre_usuario:
+            if "historial" in usuario and len(usuario["historial"]) > 0:
+                print(f"EL HISTORIAL DE LOS NUMEROS JUGADOS DE: {nombre_usuario}")
+                for i, boleto in enumerate(usuario["historial"], start=1):
+                    print(f"{i}: {boleto}")
+            else:
+                print("NO HAY HISTORIAL DE BOLETOS JUGADOS")
+            break
+
+def premios_personales(datos: str, nombre_usuario: str):
+    usuarios = leerJson(datos)
+    
+    for usuario in usuarios:
+        if usuario["Usuario"] == nombre_usuario:
+            premios = usuario.get("premios", {"bronce": 0, "plata": 0, "oro": 0, "gran_premio": 0})
+            print(f"PREMIOS PERSONALES DE {nombre_usuario}:")
+            print(f"🥉 PREMIO BRONCE (3 aciertos): {premios['bronce']} veces")
+            print(f"🥈 PREMIO PLATA (4 aciertos): {premios['plata']} veces")
+            print(f"🥇 PREMIO ORO (5 aciertos): {premios['oro']} veces")
+            print(f"🏆 GRAN PREMIO (6 aciertos): {premios['gran_premio']} veces")
+            break
+
+def ver_dinero_invertido(datos: str, nombre_usuario: str):
+    usuarios = leerJson(datos)
+    
+    for usuario in usuarios:
+        if usuario["Usuario"] == nombre_usuario:
+            dinero = usuario.get("dinero_invertido", 0)
+            print(f"DINERO INVERTIDO POR {nombre_usuario}: ${dinero:,}")
+            break
+
+def ver_dinero_ganado(datos: str, nombre_usuario: str):
+    usuarios = leerJson(datos)
+    
+    for usuario in usuarios:
+        if usuario["Usuario"] == nombre_usuario:
+            dinero = usuario.get("dinero_ganado", 0)
+            print(f"DINERO GANADO POR {nombre_usuario}: ${dinero:,}")
+            break
+
+def mostrar_aciertos_ultimo_sorteo(boletos: list, datos: str):
+    global Boleta_Ganadora
+    
+    if Boleta_Ganadora:
+        numeros_ganadores = [int(x) for x in Boleta_Ganadora.split("-")]
+        print(f"\nACIERTOS VS ÚLTIMO SORTEO ({Boleta_Ganadora}):")
         
-def Numeros_Ganadores_Usuario(datos: str,  nombre_usario: str):
-    historial_ganadores = leerJson(datos)
-    for i in historial_ganadores:
-        if i["Usuario"] == nombre_usario:
-            for i, index in enumerate(i["ganadores"], start = 1):
-                print(f"{i}: {index}")
-                  
+        for i, boleto in enumerate(boletos, start=1):
+            numeros_boleto = [int(x) for x in boleto.split("-")]
+            aciertos = len(set(numeros_boleto) & set(numeros_ganadores))
+            print(f"Boleto {i} ({boleto}): {aciertos} aciertos")
 
-def Personal_numerosjugadores(datos:str, nombre_usuario:str):
-    historial_personal = leerJson(datos)
-    for i in historial_personal:
-        if i["Usuario"] == nombre_usuario:
-            for i, index in enumerate(i["historial"], start = 1):
-                print(F"EL HISTORIAL DE LOS NUMEROS JUGADOS DE: {Nombre_Usuario}")
-                print(f"{i}: {index}")
-
-def premios_personales(datos:str, premios:str):
-    Premios_personales = leerJson(datos)
-    numero = []
-    for x in Premios_personales:
-        if x["Usuario"] == premios:
-            for i, index in enumerate(x["boletos"], start = 1):
-                numero.append(index)
-    boletos_numeros = []
-    for boleto in numero:
-        numeros = [int(x) for x in boleto.split("-")]
-        boletos_numeros.append(numeros)
+def mostrar_numero_mas_frecuente(datos: str):
+    global historial_ganadores
     
-    
+    if len(historial_ganadores) > 0:
+        todos_numeros = []
+        # Tomar los últimos 20 sorteos
+        ultimos_sorteos = historial_ganadores[-20:]
         
+        for sorteo in ultimos_sorteos:
+            numeros = [int(x) for x in sorteo.split("-")]
+            todos_numeros.extend(numeros)
+        
+        if todos_numeros:
+            contador = Counter(todos_numeros)
+            mas_frecuente = contador.most_common(1)[0]
+            print(f"\nNÚMERO MÁS FRECUENTE EN ÚLTIMOS {len(ultimos_sorteos)} SORTEOS:")
+            print(f"Número {mas_frecuente[0]} apareció {mas_frecuente[1]} veces")
+    else:
+        print("\nNO HAY HISTORIAL DE SORTEOS DISPONIBLE")
+
 def convertido(nombre: str):
     numero = [int(x) for x in nombre.split("-")]
-    print(numero)
     return numero
 
-def convertido_lista(nombre:list):
+def convertido_lista(nombre: list):
     numeros = [[int(x) for x in s.split("-")] for s in nombre]
     return numeros
 
-          
-        
-def comparacion(dato:list, datos2: list):
+def comparacion(dato: list, datos2: list):
     for i, boleto in enumerate(dato, start=1):
         aciertos = len(set(boleto) & set(datos2))
         print(f"Boleto {i}: {boleto} - Aciertos: {aciertos}")
-              
+
+def mostrar_historial_con_aciertos(datos: str, nombre_usuario: str):
+    global Boleta_Ganadora
+    usuarios = leerJson(datos)
+    
+    for usuario in usuarios:
+        if usuario["Usuario"] == nombre_usuario:
+            if "historial" in usuario and len(usuario["historial"]) > 0:
+                print(f"HISTORIAL CON ACIERTOS DE {nombre_usuario}:")
+                numeros_ganadores = [int(x) for x in Boleta_Ganadora.split("-")]
+                
+                for i, boleto in enumerate(usuario["historial"], start=1):
+                    numeros_boleto = [int(x) for x in boleto.split("-")]
+                    aciertos = len(set(numeros_boleto) & set(numeros_ganadores))
+                    premio = ""
+                    
+                    if aciertos == 6:
+                        premio = "🏆 GRAN PREMIO"
+                    elif aciertos == 5:
+                        premio = "🥇 PREMIO ORO"
+                    elif aciertos == 4:
+                        premio = "🥈 PREMIO PLATA"
+                    elif aciertos == 3:
+                        premio = "🥉 PREMIO BRONCE"
+                    
+                    print(f"{i}: {boleto} - {aciertos} aciertos {premio}")
+            else:
+                print("NO HAY HISTORIAL DE BOLETOS")
+            break
+
 def Proceso_Inicial():
-    Menu_Usuario()
-    Opcion_Usuario = Validacion_Menu_Usuario("INGRESE  SU OPCION\n",0,5)
-    if  Opcion_Usuario == 1:
-        Menu_Sub_Menu_Boletas()
-        Opcion_Boleto = Validacion_Ingreso("INGRESE  SU OPCION\n",0,2)
-        if Opcion_Boleto == 1:
-            Agregar_Boletos_Usuario(Nombre_Usuario,"Loteria.json")             
-        if Opcion_Boleto == 2:
-            Agregar_Boletos_Manualmente(Nombre_Usuario,"Loteria.json")
-        if Opcion_Boleto == 0:
-            pass
-    if Opcion_Usuario == 2:
-        Boletos_Comprados(Nombre_Usuario,"Loteria.json")
+    while True:
+        Menu_Usuario()
+        Opcion_Usuario = Validacion_Menu_Usuario("INGRESE SU OPCION\n", 0, 7)
+        rango_clear_screen(Opcion_Usuario,0,7)
         
+        if Opcion_Usuario == 1:  # COMPRAR BOLETOS
+            Menu_Sub_Menu_Boletas()
+            Opcion_Boleto = Validacion_Ingreso("INGRESE SU OPCION\n", 0, 2)
+            rango_clear_screen(Opcion_Boleto,0,2)
             
-while True:
-    Menu_De_Ingreso()
-    Opcion_Menu = Validacion_Menu_Ingreso("INGRESE  SU OPCION\n",0,2)
+            if Opcion_Boleto == 1:  # Compra aleatoria
+                logos()
+                Agregar_Boletos_Usuario(Nombre_Usuario, "Loteria.json")
+            elif Opcion_Boleto == 2:  # Compra manual
+                logos()
+                Agregar_Boletos_Manualmente(Nombre_Usuario, "Loteria.json")
+            elif Opcion_Boleto == 0:  # Salir
+                continue
+                
+        elif Opcion_Usuario == 2:  # VER BOLETOS COMPRADOS
+            logos()
+            Boletos_Comprados(Nombre_Usuario, "Loteria.json")
+            input("\nPresione ENTER para continuar...")
+            
+        elif Opcion_Usuario == 3:  # VER HISTORIAL DE NÚMEROS GANADORES
+            logos()
+            Numeros_Ganadores_Usuario("Loteria.json", Nombre_Usuario)
+            input("\nPresione ENTER para continuar...")
+            
+        elif Opcion_Usuario == 4:  # VER HISTORIAL PERSONAL
+            logos()
+            Personal_numerosjugadores("Loteria.json", Nombre_Usuario)
+            input("\nPresione ENTER para continuar...")
+            
+        elif Opcion_Usuario == 5:  # VER HISTORIAL CON ACIERTOS
+            Menu_Sub_Menu_Aciertos()
+            opcion_aciertos = Validacion_Ingreso("INGRESE SU OPCION\n", 0, 5)
+            rango_clear_screen(opcion_aciertos,0,5)
+            
+            if opcion_aciertos == 1:  # Premio Bronce
+                logos()
+                mostrar_premios_especificos("Loteria.json", Nombre_Usuario, "bronce")
+            elif opcion_aciertos == 2:  # Premio Plata
+                logos()
+                mostrar_premios_especificos("Loteria.json", Nombre_Usuario, "plata")
+            elif opcion_aciertos == 3:  # Premio Oro
+                logos()
+                mostrar_premios_especificos("Loteria.json", Nombre_Usuario, "oro")
+            elif opcion_aciertos == 4:  # Gran Premio
+                logos()
+                mostrar_premios_especificos("Loteria.json", Nombre_Usuario, "gran_premio")
+            elif opcion_aciertos == 5:  # Estadísticas
+                logos()
+                premios_personales("Loteria.json", Nombre_Usuario)
+                mostrar_historial_con_aciertos("Loteria.json", Nombre_Usuario)
+            
+            input("\nPresione ENTER para continuar...")
+            
+        elif Opcion_Usuario == 6:  # VER DINERO INVERTIDO
+            logos()
+            ver_dinero_invertido("Loteria.json", Nombre_Usuario)
+            input("\nPresione ENTER para continuar...")
+            
+        elif Opcion_Usuario == 7:  # VER DINERO GANADO
+            logos()
+            ver_dinero_ganado("Loteria.json", Nombre_Usuario)
+            input("\nPresione ENTER para continuar...")
+            
+        elif Opcion_Usuario == 0:  # SALIR
+            break
 
-    if Opcion_Menu == 1:
-        Guardar_Usuarios(Loteria,Usuarios)
-        escribirJson("Loteria.json",Usuarios)
-    elif  Opcion_Menu == 2:
-        Ingreso_Usuario("Loteria.json")
-        Proceso_Inicial()
-    elif  Opcion_Menu == 0:
-        Agregar_Boletos_Manualmente(Nombre_Usuario,"Loteria.json" )
-        
-        
+def mostrar_premios_especificos(datos: str, nombre_usuario: str, tipo_premio: str):
+    usuarios = leerJson(datos)
+    
+    for usuario in usuarios:
+        if usuario["Usuario"] == nombre_usuario:
+            premios = usuario.get("premios", {"bronce": 0, "plata": 0, "oro": 0, "gran_premio": 0})
+            cantidad = premios.get(tipo_premio, 0)
+            
+            nombres_premios = {
+                "bronce": "🥉 PREMIO BRONCE (3 aciertos)",
+                "plata": "🥈 PREMIO PLATA (4 aciertos)", 
+                "oro": "🥇 PREMIO ORO (5 aciertos)",
+                "gran_premio": "🏆 GRAN PREMIO (6 aciertos)"
+            }
+            
+            print(f"{nombres_premios[tipo_premio]}: {cantidad} veces ganado")
+            
+            if cantidad > 0:
+                dinero_por_premio = {
+                    "bronce": 50000,
+                    "plata": 500000,
+                    "oro": 5000000,
+                    "gran_premio": 100000000
+                }
+                total_ganado = cantidad * dinero_por_premio[tipo_premio]
+                print(f"Total ganado en este premio: ${total_ganado:,}")
+            break
 
+def Proceso_Administrador():
+    while True:
+        Administrador_Menu()
+        opcion_admin = Validacion_Ingreso("INGRESE SU OPCION\n", 0, 4)
+        rango_clear_screen(opcion_admin,0,4)
+        
+        if opcion_admin == 1:  # VER USUARIOS
+            logos()
+            Administrador_Ver_Usuarios("Loteria.json", Admin)
+            input("\nPresione ENTER para continuar...")
+            
+        elif opcion_admin == 2:  # INGRESAR NÚMERO GANADOR
+            logos()
+            Boletas_Ganadoras_Ad(Admin, "Loteria.json")
+            input("\nPresione ENTER para continuar...")
+            
+        elif opcion_admin == 3:  # VER HISTORIAL DE NÚMEROS GANADORES
+            logos()
+            Numero_Ganadores("Loteria.json", Admin)
+            input("\nPresione ENTER para continuar...")
+            
+        elif opcion_admin == 4:  # VER HISTORIAL DE GANADORES
+            logos()
+            mostrar_todos_los_ganadores("Loteria.json")
+            input("\nPresione ENTER para continuar...")
+            
+        elif opcion_admin == 0:  # SALIR
+            break
+
+def mostrar_todos_los_ganadores(datos: str):
+    usuarios = leerJson(datos)
+    print("HISTORIAL DE TODOS LOS GANADORES:")
+    logos()
+    
+    hay_ganadores = False
+    for usuario in usuarios:
+        premios = usuario.get("premios", {"bronce": 0, "plata": 0, "oro": 0, "gran_premio": 0})
+        total_premios = sum(premios.values())
+        
+        if total_premios > 0:
+            hay_ganadores = True
+            print(f"\nUSUARIO: {usuario['Usuario']}")
+            print(f"🥉 Premios Bronce: {premios['bronce']}")
+            print(f"🥈 Premios Plata: {premios['plata']}")
+            print(f"🥇 Premios Oro: {premios['oro']}")
+            print(f"🏆 Gran Premios: {premios['gran_premio']}")
+            print(f"💰 Total ganado: ${usuario.get('dinero_ganado', 0):,}")
+    
+    if not hay_ganadores:
+        print("NO HAY GANADORES REGISTRADOS")
+
+# PROGRAMA PRINCIPAL
+def main():
+    global Nombre_Usuario
+    
+    while True:
+        Menu_De_Ingreso()
+        Opcion_Menu = Validacion_Menu_Ingreso("INGRESE SU OPCION\n", 0, 2)
+        rango_clear_screen(Opcion_Menu,0,2)
+
+        if Opcion_Menu == 1:  # REGISTRARSE
+            logos()
+            Guardar_Usuarios(Loteria, Usuarios)
+            escribirJson("Loteria.json", Usuarios)
+            print("USUARIO REGISTRADO EXITOSAMENTE")
+            input("Presione ENTER para continuar...")
+            
+        elif Opcion_Menu == 2:  # INICIAR SESIÓN
+            # Verificar si es administrador
+            logos()
+            usuario_ingresado = input("INGRESE SU USUARIO: ").upper()
+            
+            if usuario_ingresado == "ADMINISTRADOR":
+                contraseña = input("INGRESE CONTRASEÑA DE ADMINISTRADOR: ")
+                if contraseña == "admin123":  # Contraseña del administrador
+                    print("BIENVENIDO ADMINISTRADOR")
+                    Proceso_Administrador()
+                else:
+                    print("CONTRASEÑA INCORRECTA")
+            else:
+                # Proceso normal de usuario
+                resultado = Ingreso_Usuario("Loteria.json")
+                if resultado:
+                    Proceso_Inicial()
+                    
+        elif Opcion_Menu == 0:  # SALIR
+            Despedida()
+            break
+
+if __name__ == "__main__":
+    main()
